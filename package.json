@@ -1,0 +1,22 @@
+{
+  "name": "daily-coding-challenge-server",
+  "version": "0.0.1",
+  "description": "daily coding challenge read / submit",
+  "main": "server/index.js",
+  "scripts": {
+    "test": "ava"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/or9/daily-coding-challenge-server.git"
+  },
+  "keywords": [
+    "daily-coding-challenge"
+  ],
+  "author": "Rahman",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/or9/daily-coding-challenge-server/issues"
+  },
+  "homepage": "https://github.com/or9/daily-coding-challenge-server#readme"
+}
