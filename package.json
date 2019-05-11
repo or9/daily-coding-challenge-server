@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/or9/daily-coding-challenge-server/issues"
   },
-  "homepage": "https://github.com/or9/daily-coding-challenge-server#readme"
+  "homepage": "https://github.com/or9/daily-coding-challenge-server#readme",
+  "dependencies": {
+    "koa": "^2.7.0"
+  }
 }
