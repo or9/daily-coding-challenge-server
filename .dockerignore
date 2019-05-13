@@ -1,0 +1,5 @@
+**/node_modules
+**/*.spec.js
+**/*.spec.html
+**/*.test.js
+**/*.test.html
