@@ -20,6 +20,10 @@
   },
   "homepage": "https://github.com/or9/daily-coding-challenge-server#readme",
   "dependencies": {
-    "koa": "^2.7.0"
+    "koa": "^2.7.0",
+    "koa-logger": "^3.2.0",
+    "koa-morgan": "^1.0.1",
+    "koa-router": "^7.4.0",
+    "rotating-file-stream": "^1.4.1"
   }
 }
