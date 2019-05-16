@@ -4,6 +4,7 @@ const { join } = require("path");
 const Koa = require("koa");
 const morgan = require("koa-morgan");
 const Router = require("koa-router");
+const serve = require("koa-static");
 const rotatingFileStream = require("rotating-file-stream");
 
 const PORT = process.env.PORT || 8443;
@@ -35,6 +36,7 @@ app
 		stream: errorLogStream,
 		skip: (req, res) => res.statusCode < 400
 	}))
+	.use(serve(`${__dirname}/public`))
 	.use(router.routes())
 	.use(router.allowedMethods());
 
