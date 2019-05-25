@@ -20,7 +20,7 @@ const serverOptions = {
 const app = new Koa();
 const router = new Router();
 
-router.get("/", (ctx, next, ...args) => {
+router.get("/api/hello", (ctx, next, ...args) => {
 	// ctx.router available
 	ctx.body = "hellooo";
 });
@@ -37,7 +37,9 @@ app
 		skip: (req, res) => res.statusCode < 400
 	}))
 	.use(serve(`${__dirname}/public`))
+	.use(serve(`${__dirname}/node_modules`))
 	.use(router.routes())
+	.use(async (ctx, next) => await ctx.send(`${__dirname}/public/index.html`))
 	.use(router.allowedMethods());
 
 console.info(`Starting server @${PORT}`);
