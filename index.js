@@ -9,6 +9,7 @@ const Koa = require("koa");
 const morgan = require("koa-morgan");
 const Router = require("koa-router");
 const serve = require("koa-static");
+const hbs = require("koa-hbs");
 const rotatingFileStream = require("rotating-file-stream");
 const __readFile = promisify(readFile);
 
@@ -24,6 +25,10 @@ const serverOptions = {
 
 const app = new Koa();
 const router = new Router();
+
+app.use(hbs.middleware, {
+	viewPath: __dirname.concat(`/views`)
+});
 
 router.get("/api/hello", (ctx, next, ...args) => {
 	// ctx.router available
