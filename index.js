@@ -1,11 +1,16 @@
 const { createSecureServer } = require("http2");
-const { readFileSync } = require("fs");
+const { 
+	readFileSync,
+	readFile
+} = require("fs");
 const { join } = require("path");
+const { promisify } = require("util");
 const Koa = require("koa");
 const morgan = require("koa-morgan");
 const Router = require("koa-router");
 const serve = require("koa-static");
 const rotatingFileStream = require("rotating-file-stream");
+const __readFile = promisify(readFile);
 
 const PORT = process.env.PORT || 8443;
 
@@ -22,8 +27,15 @@ const router = new Router();
 
 router.get("/api/hello", (ctx, next, ...args) => {
 	// ctx.router available
+	ctx.status = 200;
 	ctx.body = "hellooo";
 });
+
+app.keys = [
+	"daily-coding-challenge-super-secret-0", 
+	"dccsecret1",
+	"dccsecret2"
+];
 
 app
 	.use(morgan(`dev`, {
@@ -39,8 +51,13 @@ app
 	.use(serve(`${__dirname}/public`))
 	.use(serve(`${__dirname}/node_modules`))
 	.use(router.routes())
-	.use(async (ctx, next) => await ctx.send(`${__dirname}/public/index.html`))
-	.use(router.allowedMethods());
+	.use(router.allowedMethods())
+	.use(async (ctx, next) => {
+		//return await ctx.send(`${__dirname}/public/index.html`)
+		//ctx.body = 
+		const doc = await __readFile(`${__dirname}/public/index.html`, `utf-8`);
+		ctx.body = doc;
+	});
 
 console.info(`Starting server @${PORT}`);
 
