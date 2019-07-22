@@ -1,6 +1,7 @@
 const { createSecureServer } = require("http2");
 const {
 	readFileSync,
+	readdirSync,
 	readFile,
 	stat,
 	createReadStream,
@@ -14,14 +15,17 @@ const Koa = require("koa");
 const morgan = require("koa-morgan");
 const Router = require("koa-router");
 const serve = require("koa-static");
-const hbs = require("koa-hbs");
+const koaViews = require("koa-views");
+// const koaHbs = require("koa-views-handlebars");
 const session = require("koa-session");
 const passport = require("koa-passport");
 const rotatingFileStream = require("rotating-file-stream");
-const __readFile = promisify(readFile);
+const config = require("./config");
+
+// const __readFile = promisify(readFile);
 
 // TODO: remove convert after migration to koa v3
-const convert = require('koa-convert');
+// const convert = require('koa-convert');
 
 const PORT = process.env.PORT || 8443;
 
@@ -34,8 +38,16 @@ const serverOptions = {
 }
 
 const app = new Koa();
-const apiRouter = new Router();
-const staticRouter = new Router();
+const apiRouter = require("./apiRouter");
+const staticRouter = require("./staticRouter");
+// const apiRouter = new Router();
+// const staticRouter = new Router();
+
+// const HANDLEBARS_CONFIG = {
+// 	viewPath: __dirname.concat(`/views`),
+// 	partialsPath: __dirname.concat(`/views/partials`),
+// 	// defaultLayout: "default",
+// };
 
 const SESSION_CONFIG = {
 	key: "dccs.sess",
@@ -47,17 +59,26 @@ const SESSION_CONFIG = {
 	rolling: false,
 	renew: false,
 };
+
 app.use(session(SESSION_CONFIG, app));
+
+apiRouter.use(session(SESSION_CONFIG, app));
+staticRouter.use(session(SESSION_CONFIG, app));
 // TODO: convert() is used to avoid deprecation notice for generators in koa v3
-app.use(convert(hbs.middleware({
-	viewPath: __dirname.concat(`/views`)
-})));
+// app.use(convert(hbs.middleware(HANDLEBARS_CONFIG)));
+// app.use(hbs.middleware(HANDLEBARS_CONFIG));
+
+console.log("partials files list?", getPartialsFiles());
+
+app.use(koaViews(config.koaViews.path, config.koaViews.options));
 
 app.keys = [
 	"daily-coding-challenge-super-secret-0",
 	"dccsecret1",
 	"dccsecret2"
 ];
+
+console.info(`Starting server`);
 
 app
 	.use(morgan(`dev`, {
@@ -70,30 +91,38 @@ app
 		stream: errorLogStream,
 		skip: (req, res) => res.statusCode < 400
 	}))
-	.use(serve(`${__dirname}/public`))
-	.use(serve(`${__dirname}/node_modules`))
+	.use(serve(`public`, `${__dirname}/public`))
+	.use(serve(`dependency`, `${__dirname}/node_modules`))
+	.use(async function (ctx, next) {
+		// set ctx.state to set props
+		// then
+		// ctx.render(templateName);
+		// or
+		// ctx.render(templateName, { ... })
+		console.log("ctx???", ctx.path);
+		if (ctx.path.startsWith("/api")) return next();
+
+		var layoutName = ctx.path
+		.replace("/", "")
+		.replace("-", " ");
+
+		if (layoutName === "") {
+			layoutName = "default";
+		}
+
+		return await ctx.render(layoutName, {
+			title: "mainnnnn"
+		});
+	})
 	.use(apiRouter.routes())
 	.use(staticRouter.routes())
-	// .use(async (ctx, next) => await ctx.send(`${__dirname}/public/index.html`))
-	.use(async (ctx, next) => {
-		const filePath = join(`${__dirname}/public/index.html`);
-		const fstat = await _stat(filePath);
-
-		if (fstat.isFile()) {
-			ctx.type = extname(filePath);
-			ctx.body = createReadStream(filePath);
-		} else {
-			ctx.status = 404;
-			ctx.body = "Not found";
-		}
-	})
 	.use(apiRouter.allowedMethods())
 	.use(staticRouter.allowedMethods());
 
-console.info(`Starting server @${PORT}`);
-
 createSecureServer(serverOptions, app.callback())
-	.listen(PORT);
+	.listen(PORT, () => {
+		console.info("server started at :%s", PORT);
+	});
 
 function _stat (path) {
 	return new Promise((resolve, reject) => {
