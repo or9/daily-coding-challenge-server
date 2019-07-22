@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 "use strict";
+const { readdirSync } = require("fs");
 
 module.exports = {
-	path: `${__dirname}/views`,
+	path: `${__dirname}/../views`,
 	options: {
 		extension: "hbs",
 		map: {
@@ -25,9 +26,11 @@ module.exports = {
 
 function getPartialsFiles () {
 	const PARTIALS_FILES_DIR = process.env.PARTIALS_FILES_DIR ||
-		`${__dirname}/views/partials`;
+		`${__dirname}/../views/partials`;
 	const partialsFiles = readdirSync(PARTIALS_FILES_DIR);
 	const partialsFilesList = partialsFiles.reduce(convertArrayToObject, {});
+
+	console.info("Loaded partials", partialsFilesList);
 
 	return partialsFilesList;
 

@@ -2,8 +2,6 @@
 "use strict";
 
 const {
-	readFileSync,
-	readFile,
 	stat,
 	createReadStream,
 } = require("fs");
@@ -11,17 +9,17 @@ const {
 	join,
 	extname
 } = require("path");
-const { promisify } = require("util");
+// const { promisify } = require("util");
 
 const Router = require("koa-router");
-const serve = require("koa-static");
+// const serve = require("koa-static");
 
 // const authorize = require(`${__dirname}/middleware/authorize`);
 // const session = require(`${__dirname}/middleware/session`);
 const adminAuth = require(`${__dirname}/middleware/adminAuth`);
-const userAuth = require(`${__dirname}/middleware/userAuth`);
+// const userAuth = require(`${__dirname}/middleware/userAuth`);
 
-const __readFile = promisify(readFile);
+// const __readFile = promisify(readFile);
 
 const staticRouter = new Router();
 
@@ -62,3 +60,14 @@ async function adminPageTemplateRoute (ctx, next) {
 async function userController (ctx, next) {
 
 }
+
+
+function _stat (path) {
+	return new Promise((resolve, reject) => {
+		stat(path, (err, res) => {
+			if (err) return reject(err);
+			else return resolve(res);
+		});
+	});
+}
+
