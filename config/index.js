@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 "use strict";
 
+const { readdirSync } = require("fs");
+
 module.exports = getConfigFilesObj();
 
 function getConfigFilesObj () {
