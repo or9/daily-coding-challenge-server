@@ -1,1 +1,7 @@
-<footer>Footer stuff</footer>
+<footer>
+	&copy; <span id="currentYearCopyright"></span>
+</footer>
+<script type="module">
+document.querySelector("#currentYearCopyright")
+	.innerHTML = new Date().getFullYear();
+</script>

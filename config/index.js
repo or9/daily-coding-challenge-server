@@ -2,8 +2,6 @@
 "use strict";
 const { readdirSync } = require("fs");
 
-const { readdirSync } = require("fs");
-
 module.exports = getConfigFilesObj();
 
 function getConfigFilesObj () {

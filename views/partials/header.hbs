@@ -1,1 +1,57 @@
-<header>Header content</header>
+<header>
+	<h1>Daily Coding Challenge</h1>
+	<auth-form></auth-form>
+</header>
+
+<script type="module">
+	export class AuthForm extends HTMLElement {
+		constructor (...args) {
+			super(args);
+			// self.addEventListener, etc
+			
+			this.attachShadow({ mode: "open" })
+				.appendChild(this.constructor.template.content.cloneNode(true));
+			
+			return this;
+		}
+
+		connectedCallback () {
+			// connected to DOM
+		}
+
+		disconnectedCallback () {
+			// disconnected from DOM
+		}
+
+		adoptedCallback () {
+			// element moved to a new doc
+		}
+
+		attributeChangedCallback (attrName, oldVal, newVal) {
+			// called each time an observed attr is added, removed or changed
+			// observations declared in static get observedAttributes
+		}
+
+		static get observedAttributes () {
+			// return [];
+		}
+
+		static get template () {
+			const tmpl = document.createElement("template")
+			tmpl.innerHTML = /*html*/`
+			<form id="header-login-form" method="POST" action="/api/login">
+				<button id="header-login-btn">Login</button>
+				<button id="header-register-btn">Register</button>
+				<input type="submit" value="Login" />
+			</form>
+			`;
+			return tmpl;
+		}
+
+		static get is () {
+			return "auth-form";
+		}
+	}
+
+	customElements.define(AuthForm.is, AuthForm);
+</script>
