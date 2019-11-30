@@ -3,20 +3,89 @@
 	<auth-form></auth-form>
 </header>
 
+<template id="or9-auth-form">
+	<form id="header-login-form" method="POST" action="/api/login">
+		<input id="usernameField" 
+		value=""
+		placeholder="User name"
+		onchange="this.validateUsername"
+		required
+		/>
+		
+		<input id="passwordField"
+		value=""
+		type="password"
+		placeholder="Password"
+		min="8"
+		onchange="this.validatePassword"
+		required
+		/>
+		
+		<input id="passwordAgainField"
+		value=""
+		type="password"
+		placeholder="Password confirmation"
+		min="8"
+		onchange="this.validatePasswordMatch"
+		required
+		/>
+		
+		<input type="button" value="Login" onclick="this.login" />
+		<input type="button" value="Register" onclick="this.register" />
+	</form>
+</template>
+
 <script type="module">
+	export or9mixer;
+	
+	function or9mixer (Superclass, ...args) {
+
+	}	
+
 	export class AuthForm extends HTMLElement {
 		constructor (...args) {
 			super(args);
 			// self.addEventListener, etc
 			
+			console.log("this con tmpl content?", this.constructor.template.content);
 			this.attachShadow({ mode: "open" })
 				.appendChild(this.constructor.template.content.cloneNode(true));
 			
+			this._ = this.shadowRoot;
+
+			this._.querySelectorAll("*")
+			.forEach((element) => {
+				console.log("looping element", element);
+
+				element.getAttributeNames()
+				.filter((attr) => /^on/.test(attr))
+				.forEach((attr) => {
+					console.log("el with on[something]", attr);
+					// select attrs matchine /^on/
+					// set value of on[something]=[thispart]
+					// to this[thispart]
+					console.log(element.getAttribute(attr));
+					const handler = element.getAttribute(attr);
+					if (/^this\./.test(handler)) {
+						const instanceMethod = handler.replace(/^this\./, "");
+						element[attr] = this[instanceMethod].bind(this);
+						console.log(element.getAttribute(attr));
+					}
+				});
+			})
+
 			return this;
+		}
+
+		$ (queryStr) {
+			return this.shadowRoot.querySelectorAll(queryStr);
 		}
 
 		connectedCallback () {
 			// connected to DOM
+			console.log("what's this usernameField?", this._.querySelector("#usernameField"));
+			this.passwordAgainField = this._.querySelector("#passwordAgainField");
+			this._.querySelector("#passwordAgainField").parentNode.removeChild(this.passwordAgainField);
 		}
 
 		disconnectedCallback () {
@@ -32,20 +101,71 @@
 			// observations declared in static get observedAttributes
 		}
 
+		login (event) {
+			console.log("#login", event);
+			event.preventDefault();
+			return false;
+		}
+
+		register (event) {
+			console.log("#register", event);
+			event.preventDefault();
+			const passwordField = this._.querySelector("#passwordField");
+			passwordField
+			.parentNode
+			.insertBefore(this.passwordAgainField, passwordField);
+
+			passwordField
+			.parentNode
+			.insertBefore(passwordField, this.passwordAgainField);
+
+			this.passwordAgainField.focus();
+
+			const vals = {
+				CONFIRM_REGISTRATION: "Confirm registration",
+				REGISTER: "Register",
+				PENDING: "Registration pending",
+			};
+
+			const registerBtn = event.path[0];
+			if (registerBtn.value === vals.CONFIRM_REGISTRATION) {
+				registerBtn.value = vals.PENDING;
+				this._.querySelectorAll("input")
+				.forEach((inputElement) => inputElement.disabled = true);
+			} else {
+				registerBtn.value = vals.CONFIRM_REGISTRATION;
+			}
+
+			return false;
+		}
+
+		validateUsername (event) {
+			console.log("#validateUsername", event.target);
+			event.target.reportValidity();
+		}
+
+		validatePassword (event) {
+			console.log("#validatePassword", event);
+			event.path[0].reportValidity();
+		}
+
+		validatePasswordMatch (event) {
+			console.log("#validatePasswordMatch", event);
+			event.path[0].reportValidity();
+			// if length is the same on-input, validate
+			// otherwise, on change, validate
+		}
+
 		static get observedAttributes () {
 			// return [];
 		}
 
+		static login (event) {
+			console.log("hey I'm logging in. get out of my way.", event);
+		}
+
 		static get template () {
-			const tmpl = document.createElement("template")
-			tmpl.innerHTML = /*html*/`
-			<form id="header-login-form" method="POST" action="/api/login">
-				<button id="header-login-btn">Login</button>
-				<button id="header-register-btn">Register</button>
-				<input type="submit" value="Login" />
-			</form>
-			`;
-			return tmpl;
+			return document.querySelector(`#or9-${this.is}`);
 		}
 
 		static get is () {
