@@ -36,11 +36,64 @@
 </template>
 
 <script type="module">
-	export or9mixer;
+	// export const util from "./util.mjs"
+	// export const or9 = {
+	// 	util: import from ""
+	// };
+	// export const or9Mix = _or9Mix;
 	
-	function or9mixer (Superclass, ...args) {
+	/**
+	 * Provides a means of composing classes based on any number of mixins
+	 * 
+	 * @param Superclass {class} - Single class to extend
+	 * @returns mixinBuilder {Object}
+	 * @returns mixinBuilder.mixin {Function}
+	 */
+	function _or9Mix (Superclass) {
+		// @Superclass Class
 
-	}	
+		return {
+			/**
+			 * @module mixinBuilder
+			 * @param ...mixins {arguments}
+			 * @returns ComposedClass {class} - Class based on Superclass and any number of mixins
+			 */
+			mixin (...mixins) {
+				const me = mixins.reduce((curr, acc) => acc(curr), Superclass)
+				console.log("what's me?", me);
+				console.log("tyue", typeof me)
+				return me;
+			}
+		};
+	}
+
+	class TestMixed extends _or9Mixer(TestParent)
+	.mixin(
+		TestMixin1,
+		TestMixin2,
+		TestMixin3
+	) {
+		constructor (...args) {
+			super(args);
+			console.log("@TestMixed#constructor", args);
+		}
+	}
+
+	// class TestMixed extends _or9Mixer(
+	// 	TestParent,
+	// 	TestClass1,
+	// 	TestClass2
+	// ) {
+	// 	constructor (...args) {
+	// 		super(args);
+	// 		console.log("@TestMixed#constructor", args);
+	// 	}
+	// }
+
+	const tm = new TestMixed("hello I'm the instance");
+	tm.mixin1();
+	tm.mixin2();
+	tm.mixin3();
 
 	export class AuthForm extends HTMLElement {
 		constructor (...args) {
