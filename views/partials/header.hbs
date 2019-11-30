@@ -40,7 +40,7 @@
 	// export const or9 = {
 	// 	util: import from ""
 	// };
-	// export const or9Mix = _or9Mix;
+	export const or9Mix = _or9Mix;
 	
 	/**
 	 * Provides a means of composing classes based on any number of mixins
@@ -59,48 +59,63 @@
 			 * @returns ComposedClass {class} - Class based on Superclass and any number of mixins
 			 */
 			mixin (...mixins) {
-				const me = mixins.reduce((curr, acc) => acc(curr), Superclass)
-				console.log("what's me?", me);
-				console.log("tyue", typeof me)
-				return me;
+				return mixins.reduce((curr, acc) => acc(curr), Superclass)
 			}
 		};
 	}
 
-	class TestMixed extends _or9Mixer(TestParent)
-	.mixin(
-		TestMixin1,
-		TestMixin2,
-		TestMixin3
-	) {
-		constructor (...args) {
-			super(args);
-			console.log("@TestMixed#constructor", args);
+	/**
+	 * Base functionality for identifying event handlers from the template's markup
+	 * and proxying behavior to instance
+	 */
+	function or9CustomElementMixin (Superclass) {
+		return class extends Superclass {
+			constructor (...args) {
+				super(args);
+
+				this.attachShadow({ mode: "open" })
+					.appendChild(this.constructor.template.content.cloneNode(true));
+
+				this.shadowRoot.querySelectorAll("*")
+				.forEach((element) => {
+
+					element.getAttributeNames()
+					.filter((attr) => /^on/.test(attr))
+					.forEach((attr) => {
+						const handler = element.getAttribute(attr);
+						if (/^this\./.test(handler)) {
+							const instanceMethod = handler.replace(/^this\./, "");
+							element[attr] = this[instanceMethod].bind(this);
+						} else {
+							console.warn(attr, "will not be handled by this");
+						}
+					});
+				})
+
+				return this;
+			}
+
+			$ (queryStr) {
+				return this.shadowRoot.querySelectorAll(queryStr);
+			}
+
+			static get template () {
+				return document.querySelector(`#or9-${this.is}`);
+			}
 		}
 	}
 
-	// class TestMixed extends _or9Mixer(
-	// 	TestParent,
-	// 	TestClass1,
-	// 	TestClass2
-	// ) {
-	// 	constructor (...args) {
-	// 		super(args);
-	// 		console.log("@TestMixed#constructor", args);
-	// 	}
-	// }
-
-	const tm = new TestMixed("hello I'm the instance");
-	tm.mixin1();
-	tm.mixin2();
-	tm.mixin3();
-
 	export class AuthForm extends HTMLElement {
+		static formAction = {
+			LOGIN: "/api/login",
+			REGISTER: "/api/register"
+		}
+
 		constructor (...args) {
 			super(args);
 			// self.addEventListener, etc
 			
-			console.log("this con tmpl content?", this.constructor.template.content);
+			// console.log("this con tmpl content?", this.constructor.template.content);
 			this.attachShadow({ mode: "open" })
 				.appendChild(this.constructor.template.content.cloneNode(true));
 			
@@ -108,21 +123,21 @@
 
 			this._.querySelectorAll("*")
 			.forEach((element) => {
-				console.log("looping element", element);
+				// console.log("looping element", element);
 
 				element.getAttributeNames()
 				.filter((attr) => /^on/.test(attr))
 				.forEach((attr) => {
-					console.log("el with on[something]", attr);
+					// console.log("el with on[something]", attr);
 					// select attrs matchine /^on/
 					// set value of on[something]=[thispart]
 					// to this[thispart]
-					console.log(element.getAttribute(attr));
+					// console.log(element.getAttribute(attr));
 					const handler = element.getAttribute(attr);
 					if (/^this\./.test(handler)) {
 						const instanceMethod = handler.replace(/^this\./, "");
 						element[attr] = this[instanceMethod].bind(this);
-						console.log(element.getAttribute(attr));
+						// console.log(element.getAttribute(attr));
 					}
 				});
 			})
@@ -157,6 +172,10 @@
 		login (event) {
 			console.log("#login", event);
 			event.preventDefault();
+			console.log("form? ", this.shadowRoot.querySelector("#header-login-form"));
+			console.log("form action", this.shadowRoot.querySelector("#header-login-form").action);
+			console.log("form ", this.shadowRoot.querySelector("#header-login-form").method);
+			console.log("this con?", this.constructor.formAction.LOGIN);
 			return false;
 		}
 
@@ -165,12 +184,12 @@
 			event.preventDefault();
 			const passwordField = this._.querySelector("#passwordField");
 			passwordField
-			.parentNode
-			.insertBefore(this.passwordAgainField, passwordField);
+				.parentNode
+				.insertBefore(this.passwordAgainField, passwordField);
 
 			passwordField
-			.parentNode
-			.insertBefore(passwordField, this.passwordAgainField);
+				.parentNode
+				.insertBefore(passwordField, this.passwordAgainField);
 
 			this.passwordAgainField.focus();
 
