@@ -4,7 +4,10 @@
 </header>
 
 <template id="or9-auth-form">
-	<form id="header-login-form" method="POST" action="/api/login">
+	<form id="header-login-form" 
+	method="POST" 
+	action="/api/login"
+	onsubmit="this.submit">
 		<input id="usernameField" 
 		value=""
 		placeholder="User name"
@@ -29,9 +32,8 @@
 		onchange="this.validatePasswordMatch"
 		required
 		/>
-		
-		<input type="button" value="Login" onclick="this.login" />
-		<input type="button" value="Register" onclick="this.register" />
+		<button type="submit" onclick="this.login">Login</button>
+		<button type="submit" onclick="this.register">Register</button>
 	</form>
 </template>
 
@@ -106,11 +108,7 @@
 	}
 
 	export class AuthForm extends HTMLElement {
-		static formAction = {
-			LOGIN: "/api/login",
-			REGISTER: "/api/register"
-		}
-
+		
 		constructor (...args) {
 			super(args);
 			// self.addEventListener, etc
@@ -171,17 +169,28 @@
 
 		login (event) {
 			console.log("#login", event);
-			event.preventDefault();
-			console.log("form? ", this.shadowRoot.querySelector("#header-login-form"));
-			console.log("form action", this.shadowRoot.querySelector("#header-login-form").action);
-			console.log("form ", this.shadowRoot.querySelector("#header-login-form").method);
-			console.log("this con?", this.constructor.formAction.LOGIN);
-			return false;
+			// event.preventDefault();
+
+			const form = this.shadowRoot.querySelector("#header-login-form");
+
+			const passwordConfirmationField = form.querySelector("#passwordAgainField");
+			if (passwordConfirmationField) {
+				console.log("#login removing password conrirmation field");
+				passwordConfirmationField
+					.parentNode
+					.removeChild(passwordConfirmationField);
+			}
+
+			form.action = this.constructor.properties.form.LOGIN.ACTION;
+			form.method = this.constructor.properties.form.LOGIN.METHOD;
+			form.onsubmit = this.submit;
+			// form.submit();
+			// return false;
 		}
 
 		register (event) {
 			console.log("#register", event);
-			event.preventDefault();
+			// event.preventDefault();
 			const passwordField = this._.querySelector("#passwordField");
 			passwordField
 				.parentNode
@@ -200,12 +209,30 @@
 			};
 
 			const registerBtn = event.path[0];
-			if (registerBtn.value === vals.CONFIRM_REGISTRATION) {
-				registerBtn.value = vals.PENDING;
+			const form = this.shadowRoot.querySelector("#header-login-form");
+			
+			if (form.reportValidity()) {
+				registerBtn.innerHTML = vals.PENDING;
 				this._.querySelectorAll("input")
-				.forEach((inputElement) => inputElement.disabled = true);
+					.forEach((inputElement) => inputElement.disabled = true);
 			} else {
-				registerBtn.value = vals.CONFIRM_REGISTRATION;
+				registerBtn.innerHTML = vals.CONFIRM_REGISTRATION;
+			}
+
+			form.action = this.constructor.properties.form.REGISTER.ACTION;
+			form.method = this.constructor.properties.form.REGISTER.METHOD;
+
+		}
+
+		submit (event) {
+			console.log("#submit", event);
+			event.preventDefault();
+			const form = event.path[0];
+			// const form = this.shadowRoot.querySelector("#header-login-form");
+			console.log("form? ", form);
+			
+			if (form.reportValidity()) {
+				form.submit();
 			}
 
 			return false;
@@ -226,6 +253,21 @@
 			event.path[0].reportValidity();
 			// if length is the same on-input, validate
 			// otherwise, on change, validate
+		}
+
+		static get properties () {
+			return {
+				form: {
+					LOGIN: {
+						ACTION: "/api/login",
+						METHOD: "POST",
+					},
+					REGISTER: {
+						ACTION: "/api/register",
+						METHOD: "POST",
+					}
+				}
+			};
 		}
 
 		static get observedAttributes () {
