@@ -22,7 +22,7 @@
   "homepage": "https://github.com/or9/daily-coding-challenge-server#readme",
   "dependencies": {
     "cassandra-driver": "^4.1.0",
-    "handlebars": "^4.1.2",
+    "handlebars": "^4.3.0",
     "koa": "^2.7.0",
     "koa-morgan": "^1.0.1",
     "koa-passport": "^4.1.3",
